@@ -143,7 +143,7 @@ plots
 3. method spatial
 4. plot snow
 
-\references
+\section{references}
 Bias Correction of GCM Precipitation by Quantile Mapping: How Well Do Methods Preserve Changes in Quantiles and Extremes? 
 Alex J. Cannon; Stephen R. Sobie; Trevor Q. Murdock
 J. Climate (2015) 28 (17): 6938–6959.
@@ -162,12 +162,21 @@ We use data from region X EUR22 at nominal resolution of 22~km.
 Should use 44km or 11km as more models available
 
 API request 22:
-https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&domain=EUR-22&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+%https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&domain=EUR-22&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
 
 API request 44:
-https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3h&domain=EUR-44&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+%https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3h&domain=EUR-44&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
 
-https://esg-dn1.nsc.liu.se/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3hr&domain=EUR-44&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+%https://esg-dn1.nsc.liu.se/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3hr&domain=EUR-44&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+
+%3H data download
+%DONE:
+%joel@mountainsense:~/sim/qmap$ ./wget-hist_TASPR.sh -H  = 41GB
+
+%TODO
+%joel@mountainsense:~/sim/qmap$ ./wget-rcp26_TASPR.sh -H
+%joel@mountainsense:~/sim/qmap$ ./wget-rcp85_TAS.sh -H
+%joel@mountainsense:~/sim/qmap$ ./wget-rcp85_PR.sh -H
 
 yields 276 files (~50gb)
 
@@ -178,88 +187,41 @@ https://cds.climate.copernicus.eu/portfolio/dataset/projections-cordex-single-le
 
 \subsection{Preprocessing}
 All prercessing such as concatenating netcdf timeseries, extracting region of interest and regridding from rotated pole was done using the CDO operators
-\subsection{Scripts}
+\subsection{Scripts and technical issues}
+
+%https://github.com/joelfiddes/topoCLIM
+
+- Calenders: 360\_day propelectic\_gregorian
+- Time range: 2099-2100
 
 \subsection{Data management strategy}
 
 \subsection{Parameters}
-https://is-enes-data.github.io/CORDEX_variables_requirement_table.pdf
+%https://is-enes-data.github.io/CORDEX_variables_requirement_table.pdf
 Surface Air Pressure (644)
  Surface Downwelling Longwave Radiation (1688)
  Surface Downwelling Shortwave Radiation (1726)
  
- output variable name units  long_name standard_name direction of positive fluxes
- tas K 8 i 1 8 1 m*8 1 s*8 Near-Surface Air Temperature air_temperature 
- pr kg m-2 s-1 8 a 1 1 1 Precipitation precipitation_flux
- ps Pa 8 i 1 8 Surface Air Pressure surface_air_pressure atmos
- hurs \% 8 i 1 8 1 m*8 1 s*8 Near-Surface Relative Humidity relative_humidity
- rsds W m-2 8 a 1 1 1 Surface Downwelling Shortwave Radiation surface_downwelling_shortwave_flux_in_air down atmos
-rlds W m-2 8 a 1 1 1 Surface Downwelling Longwave Radiation surface_downwelling_longwave_flux_in_air
-uas m s-1 4 i 1 4 1 m*4 1 s*4 Eastward Near-Surface Wind eastward_wind atmos
-vas m s-1 4 i 1 4 1 m*4 1 s*4 Northward Near-Surface Wind northward_wind
 
-%%% TWO-COLUMN TABLE
-%
-%%t
-%\begin{table*}[t]
-%\caption{TEXT}
-%\begin{tabular}{column = lcr}
-%\tophline
-%
-%\middlehline
-%
-%\bottomhline
-%\end{tabular}
-%\belowtable{} % Table Footnotes
-%\end{table*}
-%
-%%% LANDSCAPE TABLE
-%
-%%t
-%\begin{sidewaystable*}[t]
-%\caption{TEXT}
-%\begin{tabular}{column = lcr}
-%\tophline
-%
-%\middlehline
-%
-%\bottomhline
-%\end{tabular}
-%\belowtable{} % Table Footnotes
-%\end{sidewaystable*}
 
-\begin{table}[t]
- \begin{center}
- \caption{Description of the hourly fields obtained from the ERA5 reanalysis. All the columns headers are terms defined by ECMWF. 'levtype' refers to the level type: surf=surface, pl=pressure level. The 'type' is either: fc=forecast, an=analysis, or inv=invariant.}
- \begin{tabular}{l l l l l l l l l l}
- \hline
- name & shortName & levtype & type & units  \\
- \hline
- 2 metre dewpoint temperature & d2m & surf & fc & K \\
- Surface thermal radiation downwards & strd & surf & fc & Jm$^{-2}$ \\
- Surface solar radiation downwards & ssrd & surf & fc & Jm$^{-2}$ \\
- Total precipitation & tp & surf & fc & m \\
- TOA incident solar radiation & tisr & surf & fc & Jm$^{-2}$ \\
- 2m temperature & 2t & surf & fc & K \\
- Temperature & t & pl & an & K \\
- Relative humidity & r & pl & an & \% \\
- U component of wind & u & pl & an & ms$^{-1}$ \\
- V component of wind & v & pl & an & ms$^{-1}$ \\
- Geopotential & z & surf & inv & m$^2$s$^{-2}$ \\
- \hline  
- \end{tabular}
- \label{tab:01}
- \end{center}
-\end{table}
+
 
 
 \section{Methods}
 
 \subsection{Extreme value analysis}
-https://www.meteoswiss.admin.ch/content/dam/meteoswiss/en/service-und-publikationen/publikationen/doc/nidex_technical_report_20171018.pdf
+%https://www.meteoswiss.admin.ch/content/dam/meteoswiss/en/service-und-publikationen/publikationen/doc/nidex_technical_report_20171018.pdf
 \subsection{Intervariabele consistency after qmap}
 \subsection{Downscaling current climate}
-\subsection{Quantile mapping}
+
+
+\subsection{Quantile mapping (QMAP)}
+
+\subsection{Quantile mapping seasonal(QMAP)}
+While quantile mapping ensures that quantile biases are corrected in the CDF it does not account for temporally varying bias. It is therefore well suited to TAS where we can be reasonablly sure that winters are cold and summers hot, at least in mid to high latitudes. However with precipitation interannual distribution can be biased while the cdf may look good. We address this with a two step approach called QMAP\_SEASON. We split the date according to some temporal subset, in this case "summer" (April-September) and "winter" (October - March) and run QMAP on each subset so computing to sets of QMAP parameters. These are applied throughout the historcal and climate timeseries at the approprite months
+
+\subsection{Generalising to subdaily variables}
+
 \subsection{Spatialisation}
 \subsection{Evaluation metrics}
 
@@ -287,7 +249,9 @@ Practical considerations
 For the evaluation of the transfer functions of both BCMs (i.e., QDM and RQM), we split the data into two periods; one for calibration and the other for validation, which is an approach widely applied in bias correction (Michelangeli et al. 2009; Piani et al. 2010a, b; Hempel et al. 2013; Vrac and Friederichs 2015). Here, the calibration period (CP) covers the years from 1960 to 1982, while the validation period (VP) includes the years from 1983 to 2005. Hence, each period covers 23 years of observed and modeled data. Note that the performed splitting implicitly assumes that all distributional changes in both observed and modeled data are the same during both periods, which should in general be critically assessed since trends may be nonlinear or just cannot be disentangled from low frequency variability. Nonetheless, making this assumption is crucial to be able to perform a detailed evaluation of the two BCMs’ respective performance characteristics.
 
 The CP is used to calibrate both, QDM 
-\subsubsection{Results}
+\section{Results}
+
+
 
 \conclusions  %% \conclusions[modified heading if necessary]
 TEXT
@@ -400,20 +364,90 @@ REFERENCE 2
 %%f
 %\begin{figure}[t]
 %\includegraphics[width=8.3cm]{FILE NAME}
-%\caption{TEXT}
+%\caption{}
 %\end{figure}
 %
+ \clearpage
 %%% TWO-COLUMN FIGURES
 %
-%%f
-%\begin{figure*}[t]
-%\includegraphics[width=12cm]{FILE NAME}
-%\caption{TEXT}
-%\end{figure*}
+%f
+\begin{figure*}[t]
+\includegraphics[width=12cm]{"plots/TA_CDF.pdf"}
+\caption{ }
+\end{figure*}
+
+\begin{figure*}[t]
+\includegraphics[width=12cm]{"plots/TA_DOY.pdf"}
+\caption{}
+\end{figure*}
+
+\begin{figure*}[t]
+\includegraphics[width=12cm]{"plots/TA_TS.pdf"}
+\caption{Mean annual near surface air temperature at the Weissfluhjoch (2540m asl)  showing corrected historical, RCP2.6 and RCP8.5 timseries. Observations and uncorrected historical data are also shown for comparison. The coloured envelops indicate +/- 1 SD of the model spread and multi-modal mean is given by the bold line. }
+\end{figure*}
+
+\begin{figure*}[t]
+\includegraphics[width=12cm]{"plots/P_CDF.pdf"}
+\caption{Multi-modal Mean monthly precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl) . This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP_SEASON. }
+\end{figure*}
+
+\begin{figure*}[t]
+\includegraphics[width=12cm]{"plots/P_DOY.pdf"}
+\caption{Multi-modal Mean daily precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl). This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP_SEASON. A 30-day running mean filter is applied for clarity. }
+\end{figure*}
+
+\begin{figure*}[t]
+\includegraphics[width=12cm]{"plots/P_SCATTER.pdf"}
+\caption{Multi-modal Mean daily precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl). This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP_SEASON. A 30-day running mean filter is applied for clarity. }
+\end{figure*}
+
+
 %
 %
+ \clearpage
 %%% TABLES
 %%%
+ \begin{table}[t]
+ \begin{center}
+% \begin{sidewaystable*}[t]
+ \caption{CORDEX variables used in this study, togther with the Climate and Forecast Conventions (CF) standard name .}
+ \begin{tabular}{l l l l l }
+ \hline
+ output variable name  &units  & long\_name  &CF standard\_name \\
+  \hline
+ tas  &K  & Near-Surface Air Temperature  &air\_temperature  \\
+ pr & kg m-2 s-1  &Precipitation  &precipitation\_flux \\
+ ps & Pa  &Surface Air Pressure  &surface\_air\_pressure  \\
+ hurs & \%    &Near-Surface Relative  &Humidity relative\_humidity \\
+ rsds  &W m-2  & Surface Downwelling Shortwave Radiation & surface\_downwelling\_shortwave\_flux\_in\_air   \\
+rlds  &W m-2 & Surface Downwelling Longwave Radiation & surface\_downwelling\_longwave\_flux\_in\_air\\
+uas  &m s-1 &Eastward  Near-Surface Wind &eastward\_wind  \\
+vas &m s-1 &Northward  Near-Surface Wind &northward\_wind \\
+
+ \hline  
+ \end{tabular}
+ \label{tab:01}
+% \end{sidewaystable*}
+ \end{center}
+\end{table}
+
+
+% Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
+% Date and time: Fr, Jul 03, 2020 - 12:27:21
+\begin{table}[!htbp] \centering 
+  \caption{} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}} ccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & OBS & Hist & Hist\_QMAP & Hist\_QMAPSEASON \\ 
+\hline \\[-1.8ex] 
+MEAN & $0.170$ & $0.240$ & $0.170$ & $0.170$ \\ 
+R-COR & $-$ & $$-$0.090$ & $$-$0.100$ & $0.210$ \\ 
+RMSE & $-$ & $0.180$ & $0.130$ & $0.110$ \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
 %%% The different columns must be seperated with a & command and should
 %%% end with \\ to identify the column brake.
 %
