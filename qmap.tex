@@ -77,17 +77,21 @@
 
 \begin{document}
 
-\title{Downscaling climate timeseries in data sparse regions}
+\title{TopoCLIM: Rapid topography based downscaling of regional climate model output in complex terrain 
+%Topographic based downscaling of climate time series in data sparse regions using quantile mapping
+}
 
 
 % \Author[affil]{given_name}{surname}
 
-\Author[]{}{}
-\Author[]{}{}
-\Author[]{}{}
+\Author[1]{Joel}{Fiddes}
+\Author[2]{Kristoffer}{Aalstad}
+\Author[1,3]{Michael}{Lehning}
 
-\affil[]{ADDRESS}
-\affil[]{ADDRESS}
+
+\affil[1]{WSL Institute for Snow and Avalanche Research SLF, Davos, Switzerland}
+\affil[2]{Department of Geosciences, University of Oslo, P.O. Box 1047, Blindern, 0316 Oslo, Norway}
+\affil[3]{CRYOS, School of Architecture, Civil and Environmental Engineering, Ecole Polytechnique Fédérale de Lausanne, Lausanne, Switzerland}
 
 %% The [] brackets identify the author with the corresponding affiliation. 1, 2, 3, etc. should be inserted.
 
@@ -96,9 +100,9 @@
 %% If authors contributed equally, please mark the respective author names with an asterisk, e.g. "\Author[2,*]{Anton}{Aman}" and "\Author[3,*]{Bradley}{Bman}" and add a further affiliation: "\affil[*]{These authors contributed equally to this work.}".
 
 
-\correspondence{NAME (EMAIL)}
+\correspondence{Joel Fiddes (joel.fiddes@slf.ch)}
 
-\runningtitle{TEXT}
+\runningtitle{Downscaling climate time series in data sparse regions}
 
 \runningauthor{TEXT}
 
@@ -122,165 +126,219 @@
 
 
 \begin{abstract}
-TEXT
+This study describes and evaluates a new downscaling scheme which specifically addresses the need for hillslope scale atmospheric forcing timeseries for modeling the local impact of regional climate change projections on the land surface in complex terrain. The method has a global scope and is able to generate the full suite of model forcing variables required for hydrological and land surface modeling at hourly timesteps. 
+
+It achieves this by utilising the previously published TopoSCALE scheme \citep{Fiddes2014-wt} to generate a synthetic observation of current climate at hillslope scale, while accounting for a broad range of surface-atmosphere interactions. These synthetic observations are then used to debias (downscale) CORDEX climate variables using the quantile mapping method. A further temporal disagregation step produces sub-daily fields. This approach has the advantages of other empirical-statistical methods, namely speed of use, while avoiding the need for ground data, which is often limited. It is therefore a suitable method for a wide range of remote regions where ground data is absent, incomplete, or not of sufficient length. The approach is evaluated using a network of high elevation stations across the Swiss Alps and a test application of modelling climate change impacts on Alpine snow cover is given. 
 \end{abstract}
 
 
-\copyrightstatement{TEXT}
+
 
 
 \introduction  %% \introduction[modified heading if necessary]
-Climate timeseries are required at higher resolutions than currently available from GCM or even RCMs for meaningful impact studies. This is especially the case in heterogeneous terrain such as mountain regions where surface variability is high over short horizontal distances. Various methods of downscaling can be utilised to achieve this goal. Dynamical doewnscaling requires no additional data beyond boundary forcing yet is costly and generally applied to limited domains. Statistical downscaling is cheap to run yet requires extensive and robust ground data.
 
-Here we propose a hybrid method that use the quasi-physical topography based method TopoSCALE to generate point forcing timeseries for current period then employs quantile mapping to statistically downscale or debias a climate timeseries at this point. We demonstrate this approach by downscaling CORDEX RCM data at both point scale and additionally generalising this to a spatial product using the tool TopoSUB.
+Climate change has, and will continue to cause significant changes in the global cryosphere with increasing impacts likely in a wide range of domains \citep{hock2019high}. Where observational records of sufficient length exist we are able to quantify these changes. Such records are often curated as part of national or international networks e.g. the World Meteorological Organisation's Global Cryosphere Watch, World Glacier Monitoring Service or the Global Climate Observing System. However, such locations are globally sparse, with particular observational gaps in remote regions due to technical difficulties and resources required to maintain monitoring infrastructure. 
 
-This method provides full forcing suite required to run a numerical model and we further demo this for the case of snowcover in switzerland
+In order to obtain possible scenarios of future conditions we are reliant on climate models. However, for meaningful impact studies climate time-series are often required at higher spatial and temporal resolutions than currently available from Global or even Regional Climate Models (GCMs/ RCMs). This is especially the case in heterogeneous terrain such as mountain regions where topographic variability is high over short horizontal distances. Various methods of downscaling can be utilised to achieve this goal. Dynamical downscaling typically applies an RCM or numerical weather prediction model (e.g. WRF) at high resolution over a limited area in order to obtain more detailed process representation. This requires no additional data beyond a boundary forcing yet is computationally costly (normally a super-computing centre is required) and therefore generally applied to limited domains and/or time periods. In addition, an extensive set of boundary fields are required in order to set up a run that are not normally available via standard distribution portals such as Earth System Grid Federation (ESGF), further complicating possible studies. Empirical-statistical downscaling (ESD) approaches are typically computationally cheap to run yet require extensive and robust ground observations that are often either not available, of uncertain quality, or distributed unequally according to important gradients such as elevation. In addition, timeseries from many stations are not available at climate timescales - typically 30 years \citep{Arguez2011-qv}, rendering the application of ESD methods problematic. Furthermore, many modern physically based impact models require a full suite of forcing variables to drive them, usually at sub-daily time-steps. Such requirements are rarely met by initiatives that have provided input for impact studies (cite CH2018 and others). It is increasingly recognized that analysis of extremes, and not just mean values, is required to fully quantify the impact of climate change \citep{Katz1992-xb}. By definition this requires high temporally resolved forcings, as climatic extremes often occur over short timescales e.g daily maximum temperature or storm peak that require sub-daily simulations.
 
-plots
+Climate model timeseries, even from the latest generation of RCMs, typically exhibit bias (systematic deviations) when evaluated against observations \citep{Ivanov2018-vz, Kotlarski2014-rf}. These biases need to be corrected before climate timeseries can be used to force a locally applied impact model \citep{Wood2004-vu}. However, in impact studies we are typically interested in a climate change signal (CCS) which is a quantitative measure of the difference between a future climate statistic and historical reference period (cite). Bias correction (BC) can modifify the CCS \citep{Ivanov2018-vz, Themesl2012-um}  which has been a subject of discussion and often seen as a deficiency in BC methods \citep{Hempel2013-sj}. However, it is recognised that model biases typically do not cancel out in the calculation of a CCS  and therefore this modification of the CCS under BC has been interpreted recently as an enhancement rather than a deficit, particularly in intensity dependent biases which characterise variables such as precipitation \citep{Gobiet2015-yw}.
 
-1. domain
-2. basic method poit
-3. method spatial
-4. plot snow
+There are a wide range of BC methods \citep{Gutmann2014-dq} with perhaps the most established and widely used being quantile mapping (QM) which has been shown to be most performant in comparison studies \citep{Teutschbein2013-nn, Jakob_Themes_l2011-xt} and found to cope best with with non-stationary conditions - a key assumption of climate model bias correction. It is also one of the few methods able to correct wet day frequency and intensity.  QM is a distribution based BC method that removes quantile dependent biases with respect to a reference period \citep{Ivanov2017-lt}, it therefore corrects the variance and not just the mean. It should be noted that if the the climate variable and reference are at the same spatial scale a pure bias correction is applied. whereas if the reference is at a finer scale (e.g a meteorological station) then an implicit downscaling is achieved making it also a class of empirical-statistical downscaling (ESD) methods.
 
-\section{references}
-Bias Correction of GCM Precipitation by Quantile Mapping: How Well Do Methods Preserve Changes in Quantiles and Extremes? 
-Alex J. Cannon; Stephen R. Sobie; Trevor Q. Murdock
-J. Climate (2015) 28 (17): 6938–6959.
-https://doi.org/10.1175/JCLI-D-14-00754.1
-Article history
+While concerns over the deterministic nature of QM \citep{Maraun2013-gq} and effect on multi-day statistics \citep{Addor2014-ew}  are acknowledged, it is widely accepted to be a pragmatic approach to satisfy the requirements of impact models \citep{Rajczak2016-jk} with deficits shared by all statistically-based methods. A useful overview of the issues involved with respect to impact modelling can be obtained from \citet{Stocker_TF}.
 
-\section{Data}
+%The assumption that bias structure is stationary through time is key to all BC methods and found to cope best with with non-stationary conditions - a key assumption of climate model bias correction
+
+% bad link here
+All ESD/BC methods require climate scale timeseries of observations (typically 30 years), in remote regions lacking sufficient historical observations this requirement can be difficult to achieve. Atmospheric reanalysis data-sets have been proposed as a means to compensate for missing or incomplete observations \citep{Cao2019-wx, Fiddes2014-wt} in order to provide a "best-guess" of the current state. Moreover, global reanalysis datasets can form the basis for impact studies with a global consistency. %However, we know these may also exhibit bias in some respects \citep{Orsolini2019-vo,Wang2019-px,Liu2019-fk}, further complicating our ability to quantify the impacts of climate change.
+
+In this study we address the problem of impact-model ready climate timeseries with a new modelling framework called "TopoCLIM". We use the latest ECWMF global reanalysis dataset ERA5 together with the downscaling method TopoSCALE \citep{Fiddes2014-wt} to provide a robust assessment of local-scale meteorological forcing for the reference period. Using these pseudo-observation we are able to debias climate timeseries in regions lacking ground observations. Furthermore, this method provides a full suite of forcing data required to run a numerical model at sub-daily timesteps. 
+
+By coupling this to a suitable spatial framework \citep{Fiddes2012-td} and the snow model FSM \cite{Essery2015-jv}, we demonstrate the ability of this scheme to efficiently generate high resolution (100~m) climate change maps of snow cover over the entire Swiss Alps. We test this scheme both with a detailed evaluation at the Weissfluhjoch meteorological station, and across the Swiss network of high elevation stations (IMIS) which has a large spatial support. %Finally we producing future snow-cover maps at 100m for the entire Swiss Alps, 1980-2100.  
 
 
-
-
-
-\subsection{Cordex EUR22 Regional Climate Model data}
-We use data from region X EUR22 at nominal resolution of 22~km.
-
-Should use 44km or 11km as more models available
-
-API request 22:
-%https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&domain=EUR-22&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
-
-API request 44:
-%https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3h&domain=EUR-44&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
-
-%https://esg-dn1.nsc.liu.se/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3hr&domain=EUR-44&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
-
-%3H data download
-%DONE:
-%joel@mountainsense:~/sim/qmap$ ./wget-hist_TASPR.sh -H  = 41GB
-
-%TODO
-%joel@mountainsense:~/sim/qmap$ ./wget-rcp26_TASPR.sh -H
-%joel@mountainsense:~/sim/qmap$ ./wget-rcp85_TAS.sh -H
-%joel@mountainsense:~/sim/qmap$ ./wget-rcp85_PR.sh -H
-
-yields 276 files (~50gb)
-
-Historical period: 1970-2005
-
-Data description at CDS:
-https://cds.climate.copernicus.eu/portfolio/dataset/projections-cordex-single-levels
-
-\subsection{Preprocessing}
-All prercessing such as concatenating netcdf timeseries, extracting region of interest and regridding from rotated pole was done using the CDO operators
-\subsection{Scripts and technical issues}
-
-%https://github.com/joelfiddes/topoCLIM
-
-- Calenders: 360\_day propelectic\_gregorian
-- Time range: 2099-2100
-
-\subsection{Data management strategy}
-
-\subsection{Parameters}
-%https://is-enes-data.github.io/CORDEX_variables_requirement_table.pdf
-Surface Air Pressure (644)
- Surface Downwelling Longwave Radiation (1688)
- Surface Downwelling Shortwave Radiation (1726)
- 
-
-
-
+%The contribution of the method outlined here is the ability to generate climate timeseries capable of forcing a numerical model at any point globally. 
+%Efficiently means the code is designed to run either on an institutional cluster or even a personal laptop with runtimes normally measured in minutes to hours. Of course this depends on cluster v PC and size of domain.
+%However, in many regions where we are lacking current.
+%Existing climate products eg CH2018
+%Existing tools \citep{parey2019}
 
 
 \section{Methods}
 
-\subsection{Extreme value analysis}
-%https://www.meteoswiss.admin.ch/content/dam/meteoswiss/en/service-und-publikationen/publikationen/doc/nidex_technical_report_20171018.pdf
-\subsection{Intervariabele consistency after qmap}
-\subsection{Downscaling current climate}
+\subsection{Overview}
+The scheme is implemented in Python with several specific sub-routines implemented in R (e.g. the quantile mapping package). An overview of the processing pipeline is given in Figure 2 and can be summarised as a three-step process: (1) A quasi-physical topography-based downscaling method TopoSCALE \citep{Fiddes2014-wt} generates point-scale forcing time-series for the reference period from the ERA5 reanalysis. 
+%We debias the current period using a data assimilation scheme based on a particle batch smoother \citep{Fiddes2019-vy} and MODIS snow cover information.  
+(2) the BC method quantile mapping \citep{Gudmundsson2012-kn} is used to statistically downscale (debias) a climate time series at the given point for which we now have a reference from downscaled ERA5 forcing. (3) a disaggregation scheme \citep{Forster2016-xx} generates hourly climate timeseries based on observed sub-daily distributions of meteorological variables. We demonstrate this approach by downscaling CORDEX RCM data at both point scale and additionally generalising this to a map product using the spatial framework TopoSUB \citep{Fiddes2012-td}. The overall philosophy of this approach is to develop methods that are global in application and therefore can be used in data-poor regions, are efficient to run and repeat (ability to be experimental), and yet address the key drivers of climate-surface variability in complex terrain.
+
+\subsection{Preprocessing}
+The CORDEX data download is achieved using a custom tool built around the ESGF python client. This is not a trivial task due to the large data volumes involved and variable uptime of data nodes. %These issues are handled by the module 'esgf\_get.py' in the tclim package. 
+All preprocessing steps of raw CORDEX data, such as concatenating NetCDF time series, extracting region of interest and regridding from rotated pole projections, was accomplished using standard tools from the Climate and Data Operators (CDO) toolkit. The CDO tools are incorporated into the preprocessing module of TopoCLIM and not used as standalone command line tools - enhancing the ease of use of the processing pipeline. As downloads are done by variable, it is possible that the full set of required forcing variables are not available for a given CORDEX model chain. If this is the case the model chain is excluded from any further processing. 
+
+Climate model calendars are often simplified for numerical reasons and are inherited from the parent GCM, these need to be correctly handled to produce comparable timeseries. Three calendars exist in the CORDEX data used here: "360-day" (every month is 30 days long), "365-day" (no leap year), and "standard" (complete Gregorian calendar). We convert all calendars to "standard" by linearly scaling dates to the standard Gregorian calendar and then gap filling missing data by linear interpolation. For example conversion from a "360-day"  to a "standard" calendar, the output from the linear scaling will result in a 365 day timeseries (in the case of non-leap year) and be missing the following dates: January 31st, March 31st, June 1st, July 31st, September 31st and November 30th. In a second step these dates are linearly gap-filled.
+
+\subsection{Spatial downscaling of observations}
+ERA5 reanalysis \citep{Hersbach2020-ze} “observations” are downscaled using the TopoSCALE scheme \citep{Fiddes2014-wt} to be used as the reference data in the bias correction. We acknowledge that reanalyses are not true observations \citep{Parker2016-qq}, yet by assimilating an extensive set of observations into an NWP model, reanalysis are often considered to give the best possible view of the global climate \cite{Dee2014-de}. TopoSCALE performs a 3D interpolation of atmospheric fields available on pressure levels, to account for time varying lapse rates, and a topographic correction of radiative fluxes. These include a cosine correction of incident direct shortwave radiation on a slope, adjustment of diffuse shortwave and longwave radiation by the sky view factor, and elevation correction of both longwave and direct shortwave. It has been extensively tested in various geographical regions and applications e.g. Permafrost in the European Alps \citep{Fiddes2015-lx}, Northern hemisphere permafrost \citep{tc-9-1303-2015}, Antarctic permafrost \citep{Obu2020-ai}, Arctic snow cover \citep{Aalstad2018-vq}, Alpine snow cover \citep{Fiddes2019-vy}. This approach enables us to provide a climate length observation timeseries globally, while accounting for the main topographic effects on atmospheric forcing. We call this product T-OBS throughout the text.
 
 
-\subsection{Quantile mapping (QMAP)}
 
-\subsection{Quantile mapping seasonal(QMAP)}
-While quantile mapping ensures that quantile biases are corrected in the CDF it does not account for temporally varying bias. It is therefore well suited to TAS where we can be reasonablly sure that winters are cold and summers hot, at least in mid to high latitudes. However with precipitation interannual distribution can be biased while the cdf may look good. We address this with a two step approach called QMAP\_SEASON. We split the date according to some temporal subset, in this case "summer" (April-September) and "winter" (October - March) and run QMAP on each subset so computing to sets of QMAP parameters. These are applied throughout the historcal and climate timeseries at the approprite months
+%and used to quantile map daily climate data using the historical CORDEX period that overlaps with OBS (1980-2005).
 
-\subsection{Generalising to subdaily variables}
+%\subsection{Debiasing observations}
+%While we assume OBS are a reasonable representation of near surface conditions this is not necessarily so as biases in ERA5 are well documented (cite) and spatially varying, largely in line with the surface observation network. One of the largest and most critical uncertainties (at least for glacio-hydrological applications), is precipitation. To address this issue in forcing uncertainty, various data assimilation (DA) strategies have been proposed (cite). In particular in the field of snow modelling a range of snow reanalysis tools have been developed (cite) and we use here the implementation of \citet{Fiddes2019-vy} based upon the work of \citep{Margulis2015-fw}. A brief overview is provided here but the reader is directed to the original publication for further details and evaluation of the method. It uses a particle batch smoother (PBS) DA algorithm to assimilate timeseries of fractional snow covered area (fSCA) from the MODIS satellite snow-cover product (cf. Section 3.5). The general methodology is (i) generate an ensemble (in PBS terminology, "particles") of simulations by perturbing forcing variables according to assumed prior distributions; (ii) the observed fSCA depletion curve for the given hydrological year and its assumed error structure is then used to constrain the particles through the PBS analysis, which computes a weighting for each particle; (iii) the constrained posterior is obtained by apllying these weights to the particles. 
 
-\subsection{Spatialisation}
-\subsection{Evaluation metrics}
+\subsection{Quantile mapping}
+We use the R package QMAP for this purpose \citep{Gudmundsson2012-kn}. \cite{Gudmundsson2012-kn} compared different implementations of QM for daily precipitation data and found that a non-parametric empirical approach (as implemented in the cited package) outperforms implementations relying on theoretical distributional assumptions.
+While quantile mapping ensures that quantile biases are corrected in the CDF it does not account for temporally varying bias. It is therefore well suited to air temperature where we can be reasonably sure that winters are cold and summers hot, at least in mid to high latitudes. However, with precipitation intra-annual distribution can be biased while the CDF may look reasonable (e.g. wet and dry season timing could be shifted). We address this with a two step approach called QMAP\_MONTH. We split the data according to 12 temporal subsets corresponding to the months of the calendar year and run the QM algorithm on each subset, computing QM parameters separately for each month. These are applied throughout the historical and climate time series at the appropriate months. This approach has been used successfully in other studies e.g. \citet{Hanzer2018-tz}. 
 
-Statistical transformations, as any statistical technique,
-quietly assume that the modelled relation holds if confronted
-with new data. In the context of climate impact assessment
-this assumption is critical as it has to be expected that climate variables exceed the observed range in future periods.
-Further, highly adaptable methods, such as the nonparametric techniques used in this study, are prone to over fitting the
-data. Both issues require that model error is quantified using
-data that have not been used for calibration. A standard technique for this task is cross-validation (CV) (e.g. Hastie et al.,
-2001) which has been previously applied for evaluating statistical downscaling techniques (e.g. Themeßl et al., 2011,
-2012). Here a 10-fold CV was employed to produce unbiased estimates of MAE and MAE0.1, MAE0.2, ..., MAE1.0.
-First the data are split into 10 subsamples of continuous time
-intervals. The model is then calibrated using the data with
-one of the subsamples being removed. MAE and MAE0.1,
-MAE0.2, ..., MAE1.0 are then estimated using the subsample
-that was not used for calibration. This procedure is repeated
-for each subsample and results in 10 estimates of model error. The mean of these 10 error estimates, the so called mean
-cross-validation error, is reported. In the remainder of this article MAE and MAE0.1, MAE0.2, ..., MAE1.0 always refers
-to the mean cross-validation error to ease formulation.
+\subsection{Temporal downscaling of observations}
+The final step in preparing the climate forcing is a temporal disaggregation to generate required sub-daily fields. Original hourly resolution T-OBS are used to temporally disaggregate the downscaled (quantile mapped) daily climate timeseries. An adapted version of the Melodist package is used for this purpose \citep{Forster2016-xx}. This disaggregates daily data based on observed sub-daily distributions. It should be noted that this assumes sub-daily distributions are stationary in a future climate, which quite possibly is not the case. However a greater source of uncertainty likely exists in the ability of ERA5 to reproduce short timescale local weather patterns which require convection resolving model resolutions \citep{Liu2017-md} and appropriate physics. %What we in effect do here is to consider how daily extreme values look in the future once scaled by the information we have from daily RCM data.
 
-https://link.springer.com/article/10.1007%2Fs00477-019-01750-7:
-Evaluation of RQM
-Practical considerations
-For the evaluation of the transfer functions of both BCMs (i.e., QDM and RQM), we split the data into two periods; one for calibration and the other for validation, which is an approach widely applied in bias correction (Michelangeli et al. 2009; Piani et al. 2010a, b; Hempel et al. 2013; Vrac and Friederichs 2015). Here, the calibration period (CP) covers the years from 1960 to 1982, while the validation period (VP) includes the years from 1983 to 2005. Hence, each period covers 23 years of observed and modeled data. Note that the performed splitting implicitly assumes that all distributional changes in both observed and modeled data are the same during both periods, which should in general be critically assessed since trends may be nonlinear or just cannot be disentangled from low frequency variability. Nonetheless, making this assumption is crucial to be able to perform a detailed evaluation of the two BCMs’ respective performance characteristics.
+\subsection{Simulation and maps}
+We use the Factorial Snow Model (FSM) model \citep{Essery2015-jv} to simulate the snow cover and TopoSUB \citep{Fiddes2012-td} to spatialise results to a 2D map. Briefly, TopoSUB is a topographic sampling scheme that reduces distributed modelling problems that explicitly model individual pixels to a lumped model several orders of magnitude smaller while considering the full range of topographic heterogeneity that exists, by splitting the model domain into clusters consisting of pixels with similar terrain parameters. In this way it is possible to produce high resolution maps (metre scale) over large (continental) modelling domains, while explicitly including the drivers of surface-atmosphere processes.
+The scheme is implemented on an HPC cluster for efficiency in an "embarrassingly parallel" sense i.e. no communication required between compute nodes. Typical setups use 100 nodes with run-times measured in minutes for full 1980-2100 runs. The scheme also has a desktop mode which typically utilises 8 cores and typical runs will require a few hours. These "benchmarks" are provided merely to give the reader an order-of-magnitude idea of how resource intensive this scheme is.
 
-The CP is used to calibrate both, QDM 
-\section{Results}
+\subsection{Treatment of glaciers}
+Glacier zones are typically masked in studies of seasonal snow unless a glacier layer is explicitly accounted for in the model. 
+%However, we think it is useful to show the climate-viable glacier accumulation zone i.e. the region under a steady state climate where glaciers would develop in the model due to non-melt of seasonal snow at the end of the summer and accumulates from year to year. This defines an accumulation zone only of course and ignores all glacier dynamics. We mask out pixels that do not melt out in the analysis - indicating glacier accumulation regions and further analyse the evolution of these "accumulation zones" in the climate runs.
+In this study, however, we wanted to highlight and track changes in the glacier accumulation zones. These zones are areas where the annual surface mass balance is positive, leading to the formation or growth of glaciers. With our framework we are able to identify such zones, but we ignore glacier dynamics so we are not able to map the evolution of glaciers.
+%Additionally, this only considers the meteorological forcing and topographical position (which defines the meteo forcing through TopoSCALE) and does not consider changing ground heat-fluxes.
+
+
+
+
+
+\section{Study region and data}
+\subsection{Model domain}
+We consider two scales in this study (a) point-scale (meteorological station, Weissfluhjoch and IMIS network) and (b) regional (Swiss Alps), in order to illustrate typical applications of the scheme. A map of the study region and the location of the stations we used is given in Figure 1.
+
+\subsection{Climate data}
+The basic forcing comes from the regional climate model project CORDEX EUR-44 product \citep{Jacob2014-yw} at nominal resolution of 44\unit{km}. The 44\unit{km} product was chosen over the 22\unit{km} product as this had many more model chains available. The EURO domain also has an 11\unit{km} product but this is not available globally, and therefore not fit for the purpose of this study. Data was retrieved from the Earth System Grid Federation (ESGF) using an API and automated python based tool developed in this study. This is an important step as the number of file downloads are large with dimensions being $\text{models}\times\text{variables}\times\text{scenarios}\times\text{time periods}$
+and ESGF being a distributed set of data nodes with variable uptime, further complicating the download process. 
+%Therefore we developed a tool based on the ESGF python API which simplified data retrieval and management. 
+We use daily data to force the scheme and retrieve historical data plus projections from two climate change scenarios, RCP2.6 ( a "very stringent" pathway, RCP2.6 requires that  $\text{CO}_2$ emissions start declining by 2020 and go to zero by 2100) and RCP8.5 (emissions continue to rise throughout the 21st century). A full description of CORDEX datasets and models used is given in Table 2. Daily data was chosen for the method (therefore requiring a temporal disaggregation step) as limited number of model chains are available at sub-daily resolutions. A higher number of model chains  increases confidence in our results, by improved quantification of inter-model variability.
+
+\subsection{Reanalysis data}
+We use ECWMF's latest reanalysis product ERA5 \citep{Hersbach2020-ze}, which uses IFS 41r2 version of the ECMWF NWP model. ERA5 represents an evolution over its predecessor, ERA-Interim, by increasing the model spatial resolution to 30\unit{km}, temporal resolution to hourly and the vertical model levels to 137. These are downscaled for the purpose of bias correction using the TopoSCALE scheme \citep{Fiddes2014-wt} as described above (cf. Methods). %We call these synthetic obs (T-OBS) to acknowledge they are not true observations but arguably the best option for climate scale studies.
+
+\subsection{Topography}
+NASA's SRTM-3 90\unit{m} digital elevation model (DEM) is used as a topographical surface for TopoSCALE downscaling routines. Slope, aspect and sky-view factor (the portion of the sky hemisphere that is visible for a given DEM pixel) are derived \citep{Dozier1990-jp}. A higher resolution DEM may also be used but likely does not add value as processes such as wind transport that operate on these scales are not included in the model \citep{Mott2018-pt}. Importantly, higher resolution does not necessarily increase runtime either in point mode (trivially) or in spatial mode where the run-time in the main programme modules is related to number of TopoSUB clusters (although not linearly as the scheme is highly scalable).
+
+%\subsection{Assimilated fSCA observations} % need to eddit!! FROM DA paper!!
+
+%We assimilate fSCA retrievals obtained from version 6 of the level 3 daily MODIS snow-cover product from the Terra \citep[MOD10A1 product;][]{MOD10A1} and Aqua \citep[MYD10A1 product;][]{MYD10A1} satellites. The retrieval algorithm is based on the inversion of a linear regression of MODIS normalized difference snow index (NDSI) on reference fSCA estimated from coincident Landsat imagery and it is given by the 'FRA6T' relationship in \citet{Salomonson}. The normalized difference snow index exploits the fact that snow is highly reflective in the visible but a good absorber in the shortwave infrared which differentiates it from most other natural surfaces \citep{Painter_MODSCAG}. If cloud free retrievals are available from both Terra and Aqua retrievals for a given day then the Terra retrievals are used. \citet{Aalstad2018-vq} compared MODIS fSCA retrievals to reference fSCA estimates obtained from a time-lapse photography, imagery from an unmanned aerial vehicle, as well as snow surveys at a site on Svalbard and obtained an RMSE of $\sigma_y=0.13$ for the MODIS retrievals. \hl{This estimate is in good agreement with those found in the Alps by other studies} \citep[e.g.][]{Masson2018}, \hl{and so we use this as the observation error variance ($\sigma_y^2$) in the assimilation (Section 2.3.2)}.
+
+\section{Simulation setup and evaluation}
+
+%\subsection{Evaluation point TODO}
+ Predictive methods must by definition be evaluated on independent data from that which was used for calibration in order to correctly evaluate how applicable a model is beyond the data-space within which it was developed. Further, highly adaptable methods, such as the non-parametric techniques used in this study, are prone to over fitting (ref). These issues are avoided in this study as we perform an independent evaluation using station data from the IMIS station network, whereas calibration or in this case more accurately downscaling, is performed using downscaled ERA5 fields. Note, none of the meteorological fields of the IMIS stations were assimilated during the production of ERA5.
+ %To evaluate the transfer functions modelled by QMAP we split the observation data into two periods corresponding to the overlaping period of the climate data refernce period CLIM_{ref} and {OBS} 1980-2005.  which is an approach widely applied in bias correction /citep{Passow2020-qt, } (Michelangeli et al. 2009; Piani et al. 2010a, b; Hempel et al. 2013; Vrac and Friederichs 2015). Note that the performed splitting implicitly assumes that all distributional changes in both observed and modeled data are the same during both periods, which should in general be critically assessed since trends may be nonlinear or just cannot be disentangled from low frequency variability. Nonetheless, making this assumption is crucial to be able to perform a detailed evaluation of the two BCMs’ respective performance characteristics.
+ %\subsection{Evaluation spatial}
+ Snow depth results are evaluated by automatic snow depth (cm) measurements performed by sonic ranger (Campbell Scientific SR50), available from the Inter-cantonal Measurement and Information System (IMIS) station network at 30 minute intervals. This is a high elevation station network that forms the backbone of the national avalanche service in Switzerland.
+ 
+ The analysis in this study is organised as follows: The reference period is defined as 1980-2006, which is just short of a standard 30 year climate period but limited by the coincidence of ERA5 and CORDEX-HIST data. We run our future analysis for climate periods 2030-60 and 2070-100. We assess the downscaling of all meteorological fields at the Weissfluhjoch IMIS station (Figure 3) which has the full suite of variables produced as compared to standard IMIS stations which lack a full radiation balance. Here, we additionally test the performance of the scheme at point-scale (Figure 5 and 6). We further assess air temperature and snow depth (as a proxy for precipitation) using the entire IMIS network (Figure 6). We do not assess precipitation directly as this is not available from the IMIS network and snow depth is usually considered a more robust variable to measure at high elevation. After this we provide results using the scheme at various spatial scales (Figure 6-8).
+ 
+ %SWE (mm) measurements obtained manually by observers are available at approximately biweekly intervals from snow profiles across Switzerland. Here we use the GCOS dataset  which consists of 11 sites (Figure \ref{map}). We call these sites 'stations' throughout the paper. The dataset is openly available \citep{Marty2017}. 
+
+ 
+
+\section{Results and discussion}
+
+%\subsection{Computational performance}
+%All simulations performed on a 100 processor cluster and take around 1h - running on a laptop would be around an order magnitude slower eg 10h for 100m snow map of Swiss Alps 1980-2019
+
+\subsection{Station evaluation of point forcing timeseries}
+
+Figure 3 shows an evaluation of the quantile mapping scheme at the WFJ station both as a cumulative distribution function (left column) and a day of year (DOY) plot which averages all values in the timeseries for a given DOY (right column). Here we compare grid-box CORDEX ensemble mean, a single parameter set quantile map run (QM\_QM) and monthly (12) parameter set quantile map run (QM\_MONTH) to T-OBS. This comparison is done over the period 1996-2006 which corresponds to the overlapping time-frames of CORDEX-HIST, T-OBS and station data. The initial bias is obvious in many parameters such as air temperature (daily max/min) and precipitation as indicated by the ensemble mean. It is also evident that in many cases a multiple parameter set quantile mapping is required to capture a seasonally varying bias signal e.g. precipitation (pr) and incoming shortwave radiation (rsds). 
+%Also of note is that while CORDEX daily mean temperature is not biased qwith respect to T-OBS, daily min and max are. This underscores the importance of using BC methods which address the entire distribution and not just the mean
+Figure 4 shows a typical point scale application generating a forcing timeseries, in this case for air temperature. The effect of the bias correction is shown and with a clear improvement with respect to T-OBS.
+Figure 5 gives another point scale example of snow height evolution at WFJ. Ensemble means and full spread are given by shading. Available snow height observations from WFJ are plotted in red and show good agreement with both the historical period and first decade of the RCP runs. Note the stable/rising snow height under RCP2.6 by end of century correlated to stabilised mid-century temperatures shown in Figure 4.
+
+\subsection{Spatial evaluation of snow depth}
+Figure 6 gives the evolution of snow depth averaged across the IMIS network in terms of mean DOY snow depth, starting 1 September. IMIS station measurements are given as reference, however it should be noted that the time-period covered by each station is variable. The shortest station record is 10 years, so the dataset nominally represents the period 1996-2018. These are compared to T-OBS snow height by only using days present in the IMIS dataset. At this synoptic spatial and temporal scale there is good agreement. The evolution of snow height for future climate scenarios and two future periods is given. By mid-century under RCP2.6 a reduction in peak snow depth of around 20\unit{cm} is seen and further 25\unit{cm} under RCP8.5 with respect to HIST. Peak snow depth occurs around 30-40 days earlier. By late century RCP2.6 snow depth has not further deteriorated and in fact shown signs of possible recovery with peak snow depth moving towards that of the HIST period. RCP8.5, however, gives a strong further reduction in peak snow depth of around 1~m with respect to HIST.   
+The comparison between HIST (1980-2006) and T-OBS/ IMIS (1996-2018) is useful but should be treated with caution due to only partially overlapping periods (defined by availability of station measurements). HIST has a higher peak snow depth and later snow melt-out date, which could be due to less climate change as it represents an earlier period than IMIS and T-OBS. 
+
+%\begin{itemize}
+%\item Not finished yet 
+%\item will show mean HS observed  over all stations with topoCLIM model spread and multimodal mean
+%\item discuss issue of SWE v HS  model Val (densification routine dependent)   - SWE more robust but we only have few points (biweekly/GCOS)
+%\end{itemize}
+
+
+\subsection{TopoCLIM application: Climate change impacts on Alpine snow cover}
+
+The results in Figure 7 were generated by coupling TopoCLIM with the TopoSUB spatial framework to generate transiently modelled snow height maps at 100m resolution. The ensemble mean is used in each scenario/ time-period plot. We highlight again that by using this simple approach we implicitly model climate-viable glacier accumulation zones (C-GAZ), where the snowpack does not melt-out by the end of summer. Mid-century results are comparable between RCP2.6 and RCP8.5 with marginal snow cover affected in RCP8.5 (except for the lower elevation Jura mountains) and decrease in C-GAZ of X \%. By late-century the difference is strong as also seen in Figure 6 with a strong increase in the snowline elevation and reduction of snow height at high elevations. C-GAZ remain only in the high Valais (Mattertal) and Bernese Oberland around today's accumulation zone of the Aletsch Glacier. Figure 8 provides a more quantitative picture of snow cover-elevation dynamics. This hypsometry plot summarizes the pixels of Figure 7 by showing the standard deviation of snow depth at each 50~m elevation band across the entire domain for three time periods and RCP2.6/85. As expected, a strong decrease in snow depth is seen at all elevations under RCP8.5. A slightly different story is seen under RCP2.6 with snow depth reducing up to mid-century followed by an increase at high elevations (above 3500\unit{masl}) by end of the century - this is a consistent message throughout this study and reflects the results of Figures 5, 6 and 7. It can be partially explained by stabilisation of air temperatures by mid-century (Figure 4) together with increased precipitation in the Alpine region. \citep{Jacob2014-yw, Smiatek2016-lu}. An interesting point to note in this plot is that in all time periods and scenarios snow depth is limited both at low elevation, by temperature and at high elevation by terrain, which tends to be steeper and therefore permits lower accumulations due to avalanching (this effect is explicitly accounted for in the modelling scheme cf. \citet{Fiddes2015-lx}). A final point of note in this plot is the truncation level indicating the C-GAZ elevation which is approximately 4000~m for HIST, above this level seasonal snow is not possible, as it will not melt before the following winter season or the ground is too steep for snow accumulation. The seasonal snow limit rises to around 4500\unit{masl} over the 21st century, occupying former glaciated surfaces. An implication of this for water resources is that while we lose a large quantity of C-GAZ during the 21st Century, irrespective of scenario, we will likely not lose seasonal snow water resources at those elevations.
+
+%\subsection{Discussion on extreme values}
+
+%\subsection{Scheme limitations}
+%The scheme limitations are mainly defined by characteristics of the forcing data and choices made in granularity of the setup. In general, uncertainties of the TopoSCALE scheme are inherited by TopoCLIM, the reader is referred to the original publication for a full discussion which can be summarised briefly here.  %Finally, TopoSCALE performs better at locations at higher elevations which tend to be more representative of free atmosphere with less surface effects compared to say valley bottoms. 
+
+%\subsection{Scheme uncertainties}
+
+\subsection{Forcing uncertainty}
+The largest source of uncertainty in the scheme is the reanalysis forcing from ERA5. Both the quantile mapping and disaggregation of fields to sub-daily timesteps depend on the distribution structure of ERA5 fields. While ERA5 provides hourly data and therefore resolves well the daily cycle, it remains a 25~km model with a correspondingly smooth topographical surface representation and parameterisation of physical processes that occur on shorter length scales. Typical examples are convective precipitation and cold air pooling in valley bottoms \citep{Cao2017-ce}, orographic enhancement of precipitation and wind fields (cite Mott). As the density of assimilated observations varies globally we expect the performance of ERA5-TopoSCALE-TopoCLIM model pipeline to be a function of how well constrained ERA5 is in any given location. A full analysis and discussion of TopoSCALE uncertainties is given by \cite{Fiddes2014-wt} and to some extent in \cite{Fiddes2019-vy}. The most uncertain variable is precipitation which is clearly a critical point for snow modelling studies. We do however show that there are no large scale biases in the precipitation field at least in our snow height comparison across the IMIS network.  We have shown in previous studies that variables driving the energy balance (TA, ILWR, ISWR) are downscaled with good skill by TopoSCALE. One method we have explored to address precipitation uncertainty is data assimilation of globally available satellite products using a particle batch smoother, this has shown promising results \citep{Fiddes2019-vy} and the coupling of this scheme with TopoCLIM will be the subject of subsequent work.
+
+\subsection{Evaluation uncertainty}
+Our station measurements are characterised by considerable uncertainties, a problem particularly acute for precipitation related fields such as snow depth, so we have to some degree a chicken and egg scenario when it comes to model validation. First, stations tend to be situated in sheltered flat to concave topography. Here we expect there to be considerable preferential deposition from surrounding windblown slopes and ridge-lines \citep{Grunewald2015-qm}. In general we would expect stations therefore to be positively biased with respect to large scale precipitation fluxes. Additionally, certain stations will be exposed to very local climatic effects which are not represented in the large scale 25~km ERA5 forcing. Examples being, wind funnelling leading to scouring, enhanced Foehn effects and local orographic enhancement. 
+
+%In general reanalysis is poor at producing effects related to model/ topography resolution a good example (although not relevant to our study) is convective precipitation in summer which is a sub-grid process not resolved in the model. A good example in winter is the Val Bedretto in Northern Ticino which consistently has the highest snow depths of all station in Switzerland. This station is exposed to multiple flow directions. The reanalysis is not able to represent that complexity at point scale, again ue to resolution issues.
+
+\subsection{Snow model uncertainty}
+The snow model used in this study, FSM is a fairly simple model and we do not expect it to perform as well with respect to snow densification as a more complex snow physics model such as SNOWPACK \citep{Bartelt2002-lu}. This introduces uncertainty when using HS as a validation parameter. Snow water equivalent is a simpler modelling objective but a much harder measurement objective and therefore few sites are available - particularly with good coverage at regional scales, therefore limiting its applicability for large-scale evaluations.
+
+
+%\subsubsection{Forecast uncertainty or validity of ESD in a future period}
+%By definition we can only evaluate our scheme in the past. To do this we test how well it performs in representing measured variables (meteo, HS) and from this infer suitability of application in an untestable future. Several questions arise from this which are well discussed in the bias correction or ESD literature.
+
+%\citep{Rajczak2016-if}
+
+%Uncertainties exist
+%regarding the stationarity of the underlying transfer
+%functions and biases (Christensen et al. 2008; Boberg and
+%Christensen 2012; Buser et al. 2009; Maraun 2012;
+%Bellprat et al. 2013; Kerkhoff et al. 2014)
+
+%By
+%design, QM corrects for biases in the distributional be-
+%havior of a parameter (e.g., daily precipitation amounts)
+%but does not explicitly correct for errors in the temporal
+%sequence (e.g., transition probabilities and spell lengths).
+
+
+%- ERA5 bias
+%- quantile mapping assumptions
+%- model errors/ simplification
+%- validation issues / local effects at stations that are not considered (mainly wind and enhanced orographic precip (eg we never see the Bedretto totals in the data.)
+%- HS as a poor validation variable due to dependence on model representation of densification (simple model)
 
 
 
 \conclusions  %% \conclusions[modified heading if necessary]
-TEXT
+In this study we have developed and tested a new climate model downscaling scheme specifically designed to provide slope scale forcings for impact models. We take advantage of the now globally available CORDEX RCM data to develop a method with global scope. The scheme is parsimonious and adheres to the philosophy of TopoSCALE upon which it builds. It can be run both on desktop or cluster environments. The target application of this scheme is impact modelling in complex terrain where significant atmosphere-surface interactions need to be considered. A particular application is in remote areas where ground data may either not be present at all or not available in climate-scale lengths, meaning that traditional ESD methods are problematic to use. Another strength of this approach is that it produces complete timeseries, therefore permitting transient simulations in contrast to other parsimonious methods such as the delta-change approach, an important point for domains such as soil, ground-ice or glaciers  where surface forcings drive processes over decadal timescales. 
+
+
+
 
 %% The following commands are for the statements about the availability of data sets and/or software code corresponding to the manuscript.
 %% It is strongly recommended to make use of these sections in case data sets and/or software code have been part of your research the article is based on.
 
-\codeavailability{TEXT} %% use this section when having only software code available
-
-
-\dataavailability{TEXT} %% use this section when having only data sets available
 
 
 \codedataavailability{TEXT} %% use this section when having data sets and software code available
-
+https://github.com/joelfiddes/topoCLIM
 
 \sampleavailability{TEXT} %% use this section when having geoscientific samples available
 
 
-\videosupplement{TEXT} %% use this section when having video supplements available
+
+%\appendix
+%\section{}    %% Appendix A
+
+%\subsection{}     %% Appendix A1, A2, etc.
 
 
-\appendix
-\section{}    %% Appendix A
-
-\subsection{}     %% Appendix A1, A2, etc.
-
-
-\noappendix       %% use this to mark the end of the appendix section. Otherwise the figures might be numbered incorrectly (e.g. 10 instead of 1).
+%\noappendix       %% use this to mark the end of the appendix section. Otherwise the figures might be numbered incorrectly (e.g. 10 instead of 1).
 
 %% Regarding figures and tables in appendices, the following two options are possible depending on your general handling of figures and tables in the manuscript environment:
 
@@ -290,19 +348,15 @@ TEXT
 %% Option 2: If you put all figures after the reference list, please insert appendix tables and figures after the normal tables and figures.
 %% To rename them correctly to A1, A2, etc., please add the following commands in front of them:
 
-\appendixfigures  %% needs to be added in front of appendix figures
+%\appendixfigures  %% needs to be added in front of appendix figures
 
-\appendixtables   %% needs to be added in front of appendix tables
+%\appendixtables   %% needs to be added in front of appendix tables
 
 %% Please add \clearpage between each table and/or figure. Further guidelines on figures and tables can be found below.
-
-
 
 \authorcontribution{TEXT} %% this section is mandatory
 
 \competinginterests{TEXT} %% this section is mandatory even if you declare that no competing interests are present
-
-\disclaimer{TEXT} %% optional section
 
 \begin{acknowledgements}
 TEXT
@@ -311,43 +365,20 @@ TEXT
 
 
 
-%% REFERENCES
 
-%% The reference list is compiled as follows:
-
-\begin{thebibliography}{}
-
-\bibitem[AUTHOR(YEAR)]{LABEL1}
-REFERENCE 1
-
-\bibitem[AUTHOR(YEAR)]{LABEL2}
-REFERENCE 2
-
-\end{thebibliography}
-
-%% Since the Copernicus LaTeX package includes the BibTeX style file copernicus.bst,
-%% authors experienced with BibTeX only have to include the following two lines:
-%%
-%% \bibliographystyle{copernicus}
-%% \bibliography{example.bib}
-%%
-%% URLs and DOIs can be entered in your BibTeX file as:
-%%
-%% URL = {http://www.xyz.org/~jones/idx_g.htm}
-%% DOI = {10.5194/xyz}
+\bibliographystyle{copernicus}
+\bibliography{refs.bib}
 
 
-%% LITERATURE CITATIONS
-%%
-%% command                        & example result
-%% \citet{jones90}|               & Jones et al. (1990)
-%% \citep{jones90}|               & (Jones et al., 1990)
-%% \citep{jones90,jones93}|       & (Jones et al., 1990, 1993)
-%% \citep[p.~32]{jones90}|        & (Jones et al., 1990, p.~32)
-%% \citep[e.g.,][]{jones90}|      & (e.g., Jones et al., 1990)
-%% \citep[e.g.,][p.~32]{jones90}| & (e.g., Jones et al., 1990, p.~32)
-%% \citeauthor{jones90}|          & Jones et al.
-%% \citeyear{jones90}|            & 1990
+% \section{references}
+% Bias Correction of GCM Precipitation by Quantile Mapping: How Well Do Methods Preserve Changes in Quantiles and Extremes? 
+% Alex J. Cannon; Stephen R. Sobie; Trevor Q. Murdock
+% J. Climate (2015) 28 (17): 6938–6959.
+% https://doi.org/10.1175/JCLI-D-14-00754.1
+% Article history
+
+% # quantile mapping
+% https://www.meteoschweiz.admin.ch/content/dam/meteoswiss/en/service-und-publikationen/publikationen/doc/MeteoSchweiz_Fachbericht_270_final.pdf
 
 
 
@@ -369,37 +400,101 @@ REFERENCE 2
 %
  \clearpage
 %%% TWO-COLUMN FIGURES
-%
-%f
+
 \begin{figure*}[t]
-\includegraphics[width=12cm]{"plots/TA_CDF.pdf"}
-\caption{ }
+\includegraphics[width=18cm]{"plots/F1_map2.pdf"}
+\caption{Study domain map with climate grid overlaid (0.75\degree) to which ERA5 and CORDEX data are interpolated. IMIS snow depth evaluation stations and the Weissfluhjoch meteorological station where downscaled timeseries are evaluated are plotted.}
+\end{figure*}
+% /home/joel/manuscripts/qmap/paper_specific_code/overview_map.R
+
+\begin{figure*}[t]
+\includegraphics[width=10cm]{"plots/qmap_flow.pdf"}
+\caption{Flowchart of the main TopoCLIM processes.}
+\label{fig:flow}
+\end{figure*}
+% edit here: https://drive.google.com/file/d/1MNuBP3NIaWRSfQtTEXi15nw0RqXEaTWY/view?usp=sharing
+
+
+
+% \begin{figure*}[t]
+% \includegraphics[width=12cm]{"plots/TA_CDF.pdf"}
+% \caption{ }
+% \end{figure*}
+
+% \begin{figure*}[t]
+% \includegraphics[width=12cm]{"plots/TA_DOY.pdf"}
+% \caption{}
+% \end{figure*}
+% \begin{figure*}[t]
+% \includegraphics[width=12cm]{"plots/P_CDF.pdf"}
+% \caption{Multi-modal Mean monthly precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl) . This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP\_MONTH. }
+% \end{figure*}
+
+% \begin{figure*}[t]
+% \includegraphics[width=12cm]{"plots/P_DOY.pdf"}
+% \caption{Multi-modal Mean daily precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl). This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP\_MONTH. A 30-day running mean filter is applied for clarity. }
+% \end{figure*}
+
+% \begin{figure*}[t]
+% \includegraphics[width=12cm]{"plots/P_SCATTER.pdf"}
+% \caption{Multi-modal Mean daily precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl). This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP\_MONTH. A 30-day running mean filter is applied for clarity. }
+% \end{figure*}
+
+\begin{figure*}[t]
+\includegraphics[width=10cm]{"plots/evalplot_singleModel_season.pdf"}
+\caption{ Evaluation of the quantile mapping routine at the Weissfluhjoch station (OBS) in standard mode "CLIM\_QM" (single parameter set) and "CLIM\_QMseason" seasonally varying parameter set. CLIM is the uncorrected CORDEX data  }
+\end{figure*}
+% sample 189 from points run
+
+
+
+
+
+
+\begin{figure*}[t]
+\includegraphics[width=10cm]{"plots/tasTS2.pdf"}
+\caption{An example point-scale TopoCLIM product: Mean annual near surface air temperature at the Weissfluhjoch (2540 masl) showing corrected historical, RCP2.6 and RCP8.5 time series. Observations and uncorrected CORDEX data are also shown for comparison. The coloured envelops indicate +/- 1 SD of the model spread and multi-modal mean is given by the bold line. }
+\end{figure*}
+%/home/joel/sim/qmap/PAPER_RESULTS/wfj_eval/stscale_189_1D/tasTS2.pdf
+
+
+
+\begin{figure*}[t]
+\includegraphics[width=12cm]{"plots/HS_clim.png"}
+\caption{An example point-scale TopoCLIM product:Mean annual snow depth (m) ensemble (+/- 1 standard deviation) at the Weissfluhjoch (2540m asl) for historical and future RCP scenarios. Observation from WFJ2 are given in red. Ensemble means are indicated by solid line and long term average over the plotted historical period (1980-2006) is given by the horizontal line. The good fit in terms of absolute magnitudes, indicates that the bias correction method works satisfactorily }
 \end{figure*}
 
 \begin{figure*}[t]
-\includegraphics[width=12cm]{"plots/TA_DOY.pdf"}
-\caption{}
+\includegraphics[width=18cm]{"plots/imis-4panel.png"}
+\caption{Large scale evaluation of the scheme: Mean DOY air temperature and snow height across all IMIS stations (IMIS) is compared to the same data generated by the TopoSCALE downscaling of ERA5 (TSCALE) and TopoCLIM downscaled CORDEX data for historical period (1980-2006) and scenarios RCP2.6/85 for near (2040-2060) and far future periods (2080-2100). The full width of model ensemble is represented by the shading. Note TSCALE and IMIS have the same time-frame (variable by station between 1996-2020) and therefore directly comparable, but only partially overlaps with the CORDEX HISTORICAL period and therefore is intended for visual comparison only. }
 \end{figure*}
 
+% for these models:
+% x-special/nautilus-clipboard
+% copy
+% file:///home/joel/sim/qmap/raw_cordex/aresult/ICHEC-EC-EARTH_RCP2.6_r12i1p1_KNMI-RACMO22E_v1__TS_SCAL.nc
+% file:///home/joel/sim/qmap/raw_cordex/aresult/ICHEC-EC-EARTH_RCP8.5_r1i1p1_KNMI-RACMO22E_v1__TS_SCAL.nc
+% file:///home/joel/sim/qmap/raw_cordex/aresult/ICHEC-EC-EARTH_historical_r1i1p1_KNMI-RACMO22E_v1__TS_SCAL.nc
+
+%merge_map.R
 \begin{figure*}[t]
-\includegraphics[width=12cm]{"plots/TA_TS.pdf"}
-\caption{Mean annual near surface air temperature at the Weissfluhjoch (2540m asl)  showing corrected historical, RCP2.6 and RCP8.5 timseries. Observations and uncorrected historical data are also shown for comparison. The coloured envelops indicate +/- 1 SD of the model spread and multi-modal mean is given by the bold line. }
+\includegraphics[width=20cm]{"plots/swe.png"}
+\caption{Example TopoCLIM climate change maps: Mean snow depth (m) for RCP2.6 and RCP8.5 (columns) and time periods HIST, NEAR and FAR (rows). Non-seasonal snow-pack (does not melt in an annual cycle) is masked out and assumed to represent climatological glacier accumulation zones (ice surface fluxes are not modelled). These correspond well to existing glacier extent in period HIST. }
 \end{figure*}
 
-\begin{figure*}[t]
-\includegraphics[width=12cm]{"plots/P_CDF.pdf"}
-\caption{Multi-modal Mean monthly precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl) . This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP\_SEASON. }
-\end{figure*}
+%\begin{figure*}[t]
+%\includegraphics[width=18cm]{"plots/gst.png"}
+%\caption{}
+%\end{figure*}
 
 \begin{figure*}[t]
-\includegraphics[width=12cm]{"plots/P_DOY.pdf"}
-\caption{Multi-modal Mean daily precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl). This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP\_SEASON. A 30-day running mean filter is applied for clarity. }
+\includegraphics[width=18cm]{"plots/hypsometry_HS.pdf"}
+\caption{Hypsometry of snow depth over the Swiss Alps for RCP2.6, RCP8.5 for periods HIST, NEAR and FAR. Data comes from the ensemble mean, shading gives +/- 1 standard deviation of values in each elevation band. Solid tail at top of plots represents glacier pixels which are masked in Figure X. This demonstrates the rising ELA of glaciers over the 21st century in all RCP's and extension of seasonal snow into the former glacier zones. }
 \end{figure*}
 
-\begin{figure*}[t]
-\includegraphics[width=12cm]{"plots/P_SCATTER.pdf"}
-\caption{Multi-modal Mean daily precipitation rate ($kg m^{-2} s^{-1}$) at the Weissfluhjoch (2540m asl). This shows the improvements in the CDF by QMAP and further improvements (interannual distribution) with QMAP\_SEASON. A 30-day running mean filter is applied for clarity. }
-\end{figure*}
+%https://www.eea.europa.eu/data-and-maps/indicators/mountain-permafrost-1/assessment-1
+%Projected change in sustainable near-surface permafost for four representative concentration pathways (RCP) based on the CMIP5 model ensemble. Soild lines show the model mean. For the highest and lowest RCP, uncertainty intervals comprising one standard deviation are also shown. Note that the projected reduction is for sustainable near-surface permafrost; it does not imply that deeper permafrost will disappear at a similar rate.https://www.overleaf.com/project/5efc7343d82afb000101eb21
+
 
 
 %
@@ -410,19 +505,20 @@ REFERENCE 2
  \begin{table}[t]
  \begin{center}
 % \begin{sidewaystable*}[t]
- \caption{CORDEX variables used in this study, togther with the Climate and Forecast Conventions (CF) standard name .}
+ \caption{CORDEX variables used in this study, together with the Climate and Forecast Conventions (CF) standard name .}
  \begin{tabular}{l l l l l }
- \hline
- output variable name  &units  & long\_name  &CF standard\_name \\
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex]
+ output variable name  &units&timestep  & long\_name  &CF standard\_name \\
   \hline
- tas  &K  & Near-Surface Air Temperature  &air\_temperature  \\
- pr & kg m-2 s-1  &Precipitation  &precipitation\_flux \\
- ps & Pa  &Surface Air Pressure  &surface\_air\_pressure  \\
- hurs & \%    &Near-Surface Relative  &Humidity relative\_humidity \\
- rsds  &W m-2  & Surface Downwelling Shortwave Radiation & surface\_downwelling\_shortwave\_flux\_in\_air   \\
-rlds  &W m-2 & Surface Downwelling Longwave Radiation & surface\_downwelling\_longwave\_flux\_in\_air\\
-uas  &m s-1 &Eastward  Near-Surface Wind &eastward\_wind  \\
-vas &m s-1 &Northward  Near-Surface Wind &northward\_wind \\
+ tas  &K&3  & Near-Surface Air Temperature  &air\_temperature  \\
+ pr & kg m-2 s-1&3  &Precipitation  &precipitation\_flux \\
+ ps & Pa&3  &Surface Air Pressure  &surface\_air\_pressure  \\
+ hurs & \%&3    &Near-Surface Relative  &Humidity relative\_humidity \\
+ rsds  &W m-2&3  & Surface Downwelling Shortwave Radiation & surface\_downwelling\_shortwave\_flux\_in\_air   \\
+rlds  &W m-2&3 & Surface Downwelling Longwave Radiation & surface\_downwelling\_longwave\_flux\_in\_air\\
+uas  &m s-1&6 &Eastward  Near-Surface Wind &eastward\_wind  \\
+vas &m s-1&6 &Northward  Near-Surface Wind &northward\_wind \\
 
  \hline  
  \end{tabular}
@@ -448,24 +544,61 @@ RMSE & $-$ & $0.180$ & $0.130$ & $0.110$ \\
 \hline \\[-1.8ex] 
 \end{tabular} 
 \end{table}
-%%% The different columns must be seperated with a & command and should
-%%% end with \\ to identify the column brake.
-%
-%%% ONE-COLUMN TABLE
-%
-%%t
-%\begin{table}[t]
-%\caption{TEXT}
-%\begin{tabular}{column = lcr}
-%\tophline
-%
-%\middlehline
-%
-%\bottomhline
-%\end{tabular}
-%\belowtable{} % Table Footnotes
-%\end{table}
-%
+
+% get more models by accepting specific humidity and rcp 45
+
+\begin{table}[!htbp] \centering 
+  \caption{CORDEX model chains used in this study.} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}} lllll} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+GCM&RCM&Scenario&Ensemble&Version \\ 
+\hline \\[-1.8ex] 
+
+ CCCma-CanESM2&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+ CNRM-CERFACS-CNRM-CM5&CLMcom-CCLM5-0-6&RCP8.5&r1i1p1&v1 \\ 
+ CNRM-CERFACS-CNRM-CM5&CLMcom-CCLM5-0-6&historical&r1i1p1&v1 \\ 
+ CNRM-CERFACS-CNRM-CM5&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ CNRM-CERFACS-CNRM-CM5&CNRM-ALADIN53&RCP8.5&r1i1p1&v1 \\ 
+ CNRM-CERFACS-CNRM-CM5&HMS-ALADIN52&RCP8.5&r1i1p1&v1 \\ 
+ CNRM-CERFACS-CNRM-CM5&CNRM-ALADIN53&historical&r1i1p1&v1 \\ 
+ CNRM-CERFACS-CNRM-CM5&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+ CSIRO-QCCCE-CSIRO-Mk3-6-0&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ CSIRO-QCCCE-CSIRO-Mk3-6-0&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+ ICHEC-EC-EARTH&CLMcom-CCLM5-0-6&RCP8.5&r12i1p1&v1 \\ 
+ ICHEC-EC-EARTH&CLMcom-CCLM5-0-6&historical&r12i1p1&v1 \\ 
+ ICHEC-EC-EARTH&KNMI-RACMO22E&historical&r1i1p1&v1 \\ 
+ ICHEC-EC-EARTH&SMHI-RCA4&RCP8.5&r12i1p1&v1 \\ 
+ ICHEC-EC-EARTH&KNMI-RACMO22E&RCP2.6&r12i1p1&v1 \\ 
+ ICHEC-EC-EARTH&KNMI-RACMO22E&RCP8.5&r1i1p1&v1 \\ 
+ ICHEC-EC-EARTH&SMHI-RCA4&RCP2.6&r12i1p1&v1 \\ 
+ ICHEC-EC-EARTH&KNMI-RACMO22E&historical&r12i1p1&v1 \\ 
+ IPSL-IPSL-CM5A-MR&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ IPSL-IPSL-CM5A-MR&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+ MIROC-MIROC5&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ MIROC-MIROC5&CLMcom-CCLM5-0-6&RCP8.5&r1i1p1&v1 \\ 
+ MIROC-MIROC5&SMHI-RCA4&RCP2.6&r1i1p1&v1 \\ 
+ MIROC-MIROC5&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+ MOHC-HadGEM2-ES&KNMI-RACMO22E&RCP8.5&r1i1p1&v2 \\ 
+ MOHC-HadGEM2-ES&CLMcom-CCLM5-0-6&RCP8.5&r1i1p1&v1 \\ 
+ MOHC-HadGEM2-ES&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ MOHC-HadGEM2-ES&SMHI-RCA4&RCP2.6&r1i1p1&v1 \\ 
+ MOHC-HadGEM2-ES&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+ MOHC-HadGEM2-ES&CLMcom-CCLM5-0-6&historical&r1i1p1&v1 \\ 
+ MPI-M-MPI-ESM-LR&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ NCC-NorESM1-M&SMHI-RCA4&RCP2.6&r1i1p1&v1 \\ 
+ NCC-NorESM1-M&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ NCC-NorESM1-M&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+ NOAA-GFDL-GFDL-ESM2M&SMHI-RCA4&historical&r1i1p1&v1 \\ 
+ NOAA-GFDL-GFDL-ESM2M&SMHI-RCA4&RCP8.5&r1i1p1&v1 \\ 
+MPI-M-MPI-ESM-LR&CLMcom-CCLM5-0-6&RCP8.5&r1i1p1&v1 \\ 
+
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+
+
 %%% TWO-COLUMN TABLE
 %
 %%t

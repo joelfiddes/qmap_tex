@@ -1,0 +1,74 @@
+
+\subsection{Extreme value analysis}
+%https://www.meteoswiss.admin.ch/content/dam/meteoswiss/en/service-und-publikationen/publikationen/doc/nidex_technical_report_20171018.pdf
+\subsection{Intervariable consistency after qmap}
+As each variable is quantile mapped using a physically consistent suite of variables the result is a physically consistent suite of variables.
+\subsection{Downscaling current climate}
+
+\subsection{Generalising to subdaily variables}
+
+\subsection{Spatialisation}
+\subsection{Cordex EUR22 Regional Climate Model data}
+We use data from region X EUR22 at nominal resolution of 22~km.
+
+Should use 44km or 11km as more models available
+
+API request 22:
+%https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&domain=EUR-22&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+
+API request 44:
+%https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=3hr&domain=EUR-44&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+
+%https://esgf-data.dkrz.de/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=3hr&domain=EUR-44&experiment=rcp26&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+
+
+%https://esg-dn1.nsc.liu.se/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3hr&domain=EUR-44&experiment=rcp26&experiment=rcp85&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+
+%https://esg-dn1.nsc.liu.se/esg-search/wget?project=CORDEX&variable=tas&variable=pr&time_frequency=day&time_frequency=3h&domain=EUR-44&experiment=historical&download_structure=project,product,domain,institute,driving_model,experiment,ensemble,rcm_name,rcm_version,time_frequency,variable
+
+%3H data download
+%DONE:
+%joel@mountainsense:~/sim/qmap$ ./wget-hist_TASPR.sh -H  = 41GB
+
+%Doing: /home/joel/sim/qmap/wget-20200722121326.sh (/wget-rcp26_TASPR.sh -H)
+
+
+%TODO
+%joel@mountainsense:~/sim/qmap$ ./wget-rcp26_TASPR.sh -H
+%joel@mountainsense:~/sim/qmap$ ./wget-rcp85_TAS.sh -H
+%joel@mountainsense:~/sim/qmap$ ./wget-rcp85_PR.sh -H
+
+yields 276 files (~50gb)
+
+Historical period: 1970-2005
+
+Data description at CDS:
+https://cds.climate.copernicus.eu/portfolio/dataset/projections-cordex-single-levels
+
+
+\subsection{Evaluation metrics}
+
+Statistical transformations, as any statistical technique,
+quietly assume that the modelled relation holds if confronted
+with new data. In the context of climate impact assessment
+this assumption is critical as it has to be expected that climate variables exceed the observed range in future periods.
+Further, highly adaptable methods, such as the non-parametric techniques used in this study, are prone to over fitting the
+data. Both issues require that model error is quantified using
+data that have not been used for calibration. A standard technique for this task is cross-validation (CV) (e.g. Hastie et al.,
+2001) which has been previously applied for evaluating statistical downscaling techniques (e.g. Themeßl et al., 2011,
+2012). Here a 10-fold CV was employed to produce unbiased estimates of MAE and MAE0.1, MAE0.2, ..., MAE1.0.
+First the data are split into 10 subsamples of continuous time
+intervals. The model is then calibrated using the data with
+one of the subsamples being removed. MAE and MAE0.1,
+MAE0.2, ..., MAE1.0 are then estimated using the subsample
+that was not used for calibration. This procedure is repeated
+for each subsample and results in 10 estimates of model error. The mean of these 10 error estimates, the so called mean
+cross-validation error, is reported. In the remainder of this article MAE and MAE0.1, MAE0.2, ..., MAE1.0 always refers
+to the mean cross-validation error to ease formulation.
+
+https://link.springer.com/article/10.1007%2Fs00477-019-01750-7:
+Evaluation of RQM
+Practical considerations
+For the evaluation of the transfer functions of both BCMs (i.e., QDM and RQM), we split the data into two periods; one for calibration and the other for validation, which is an approach widely applied in bias correction (Michelangeli et al. 2009; Piani et al. 2010a, b; Hempel et al. 2013; Vrac and Friederichs 2015, ). Here, the calibration period (CP) covers the years from 1960 to 1982, while the validation period (VP) includes the years from 1983 to 2005. Hence, each period covers 23 years of observed and modeled data. Note that the performed splitting implicitly assumes that all distributional changes in both observed and modeled data are the same during both periods, which should in general be critically assessed since trends may be nonlinear or just cannot be disentangled from low frequency variability. Nonetheless, making this assumption is crucial to be able to perform a detailed evaluation of the two BCMs’ respective performance characteristics.
+
+The CP is used to calibrate both, QDM 
